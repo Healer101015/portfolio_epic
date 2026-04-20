@@ -30,16 +30,6 @@ body {
   height: 100%;
 }
 
-/* THREE.JS CANVAS */
-#canvas-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
 canvas {
   display: block;
 }
@@ -58,7 +48,7 @@ canvas {
   background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 }
 
-/* SCROLL CONTENT (invisible spacer) */
+/* SCROLL SPACER */
 #scroll-spacer {
   position: relative;
   z-index: -1;
@@ -97,38 +87,153 @@ canvas {
   pointer-events: auto;
 }
 
-/* STATION 1: INTRO */
+/* ═══════════════════════════════════
+   STATION 0: INTRO — REDESIGNED
+═══════════════════════════════════ */
 .station-intro {
   flex-direction: column;
   text-align: center;
   padding: 0 24px;
 }
 
+.intro-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.intro-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.2s forwards;
+}
+
 .station-intro h1 {
   font-family: var(--display);
-  font-size: clamp(36px, 7vw, 90px);
+  font-size: clamp(48px, 9vw, 108px);
   font-weight: 400;
   letter-spacing: -0.03em;
-  line-height: 1.1;
-  margin-bottom: 20px;
+  line-height: 1.05;
   color: var(--ink);
+  opacity: 0;
+  animation: fadeUp 0.9s ease 0.4s forwards;
 }
 
 .station-intro h1 em {
   font-style: italic;
   font-weight: 400;
+  color: var(--ink-light);
 }
 
-.station-intro .subtitle {
-  font-family: var(--serif);
-  font-size: clamp(14px, 2vw, 20px);
-  color: var(--ink-faint);
-  font-weight: 400;
-  letter-spacing: 0.06em;
+.intro-divider {
+  width: 48px;
+  height: 1px;
+  background: var(--ink-ghost);
+  margin: 24px auto;
+  opacity: 0;
+  animation: fadeIn 0.8s ease 0.7s forwards;
+}
+
+.intro-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-style: italic;
+  color: var(--ink-faint);
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.8s forwards;
 }
 
+.intro-name {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.intro-sep {
+  color: var(--ink-ghost);
+}
+
+.intro-description {
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.8vw, 19px);
+  line-height: 1.7;
+  color: var(--ink-faint);
+  max-width: 480px;
+  margin-top: 20px;
+  font-style: italic;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.0s forwards;
+}
+
+.intro-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 1.2s forwards;
+}
+
+.intro-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 13px 30px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+  pointer-events: auto;
+}
+
+.intro-btn:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.intro-btn--ghost {
+  background: transparent;
+  color: var(--ink);
+}
+
+.intro-btn--ghost:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* SCROLL HINT */
 .scroll-hint {
   position: absolute;
   bottom: 40px;
@@ -144,6 +249,8 @@ canvas {
   align-items: center;
   gap: 8px;
   animation: pulse 2s ease-in-out infinite;
+  opacity: 0;
+  animation: fadeIn 1s ease 1.6s forwards, pulse 2s ease-in-out 2.6s infinite;
 }
 
 .scroll-hint .line {
@@ -178,7 +285,9 @@ canvas {
   }
 }
 
-/* STATION 2: PHILOSOPHY */
+/* ═══════════════════════════════════
+   STATION 1: PHILOSOPHY
+═══════════════════════════════════ */
 .station-philosophy {
   padding: 0 48px;
 }
@@ -230,11 +339,12 @@ canvas {
   text-transform: uppercase;
   border: 1px solid var(--ink-ghost);
   padding: 6px 14px;
-  border-radius: 0;
   color: var(--ink-faint);
 }
 
-/* STATION 3: PROCESS / PROJECTS */
+/* ═══════════════════════════════════
+   STATION 2: PROJECTS
+═══════════════════════════════════ */
 .station-process {
   padding: 0 48px;
 }
@@ -319,7 +429,9 @@ canvas {
   padding-left: 16px;
 }
 
-/* STATION 4: CONTACT */
+/* ═══════════════════════════════════
+   STATION 3: CONTACT
+═══════════════════════════════════ */
 .station-contact {
   flex-direction: column;
   text-align: center;
@@ -387,7 +499,9 @@ canvas {
   font-style: italic;
 }
 
-/* NAVIGATION DOTS */
+/* ═══════════════════════════════════
+   NAVIGATION DOTS
+═══════════════════════════════════ */
 #nav-dots {
   position: fixed;
   right: 28px;
@@ -438,7 +552,9 @@ canvas {
   transform: scale(1.3);
 }
 
-/* LOADING SCREEN */
+/* ═══════════════════════════════════
+   LOADER
+═══════════════════════════════════ */
 #loader {
   position: fixed;
   top: 0;
@@ -477,6 +593,15 @@ canvas {
   margin-top: 16px;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════ */
 @media (max-width: 768px) {
 
   .philosophy-content,
@@ -504,5 +629,10 @@ canvas {
     padding: 14px 28px;
     margin-bottom: 10px;
     display: block;
+  }
+
+  .intro-actions {
+    flex-direction: column;
+    align-items: center;
   }
 }
