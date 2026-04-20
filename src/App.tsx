@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ThreeBackground from './components/ThreeBackground';
 
 export default function App() {
   const [currentStation, setCurrentStation] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [introVisible, setIntroVisible] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,7 +14,14 @@ export default function App() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    setTimeout(() => setLoading(false), 1200);
+
+    // After loader hides, trigger intro animations
+    setTimeout(() => {
+      setLoading(false);
+      // Small delay to let CSS transition complete before triggering child animations
+      setTimeout(() => setIntroVisible(true), 100);
+    }, 1200);
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -53,7 +61,7 @@ export default function App() {
 
         {/* STATION 0: INTRO */}
         <div className={`station station-intro ${currentStation === 0 ? 'active' : ''}`}>
-          <div className="intro-wrapper">
+          <div className={`intro-wrapper ${introVisible ? 'intro-animate' : ''}`}>
             <div className="intro-eyebrow">Portfólio · Desenvolvedor Full Stack</div>
             <h1>
               Código<br />
@@ -77,7 +85,7 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div className="scroll-hint">
+          <div className={`scroll-hint ${introVisible ? 'scroll-hint-animate' : ''}`}>
             <span>Role</span>
             <div className="line"></div>
           </div>
