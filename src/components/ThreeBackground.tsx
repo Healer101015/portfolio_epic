@@ -5,7 +5,9 @@ export default function ThreeBackground() {
     const mountRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!mountRef.current) return;
+        // 1. Guardar a referência atual numa constante logo no início
+        const currentMount = mountRef.current;
+        if (!currentMount) return;
 
         const PAPER_COLOR = 0xF5F0E8;
         const INK_COLOR = 0x1A1714;
@@ -22,9 +24,9 @@ export default function ThreeBackground() {
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        if (mountRef.current) {
-            mountRef.current.appendChild(renderer.domElement);
-        }
+
+        // 2. Usar a variável currentMount ao invés de mountRef.current
+        currentMount.appendChild(renderer.domElement);
 
         const inkGroups: THREE.Group[] = [];
         const particles: THREE.Mesh[] = [];
@@ -230,8 +232,10 @@ export default function ThreeBackground() {
             cancelAnimationFrame(animId);
             window.removeEventListener('scroll', onScroll);
             window.removeEventListener('resize', onResize);
-            if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
-                mountRef.current.removeChild(renderer.domElement);
+
+            // 3. Usar currentMount aqui para remover corretamente o elemento do DOM
+            if (currentMount && renderer.domElement.parentNode === currentMount) {
+                currentMount.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };
