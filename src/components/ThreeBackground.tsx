@@ -30,6 +30,13 @@ export default function ThreeBackground() {
         const dataRings: THREE.LineSegments[] = [];
         const techNetworks: THREE.Group[] = [];
 
+        // --- VARIÁVEIS DE INTERAÇÃO DO RATO ---
+        const mouse = new THREE.Vector2(0, 0);
+        const targetMouse = new THREE.Vector2(0, 0);
+        const raycaster = new THREE.Raycaster();
+        let windowHalfX = window.innerWidth / 2;
+        let windowHalfY = window.innerHeight / 2;
+
         let time = 0;
         let scrollProgress = 0;
         let animId: number;
@@ -45,7 +52,6 @@ export default function ThreeBackground() {
             });
         }
 
-        // --- FUNÇÕES ORIGINAIS ---
         function createBranch(startPoint: THREE.Vector3, direction: THREE.Vector3, length: number, depth: number, group: THREE.Group) {
             if (depth <= 0 || length < 0.1) return;
             const points: THREE.Vector3[] = [];
@@ -112,9 +118,6 @@ export default function ThreeBackground() {
             scene.add(group);
         }
 
-        // --- AS 5 NOVAS ADIÇÕES DE PORTFÓLIO ---
-
-        // 1. Trilha de Navegação
         function createTimelinePath(stations: { look: THREE.Vector3 }[]) {
             const pts = stations.map(s => new THREE.Vector3(s.look.x, 0.02, s.look.z));
             const curve = new THREE.CatmullRomCurve3(pts);
@@ -122,10 +125,10 @@ export default function ThreeBackground() {
             scene.add(new THREE.Line(geom, inkLineMat(0.25)));
         }
 
-        // 2. Rede Full Stack (Network Graph)
         function createNetworkGraph(x: number, y: number, z: number, spread: number) {
             const group = new THREE.Group();
             group.position.set(x, y, z);
+            group.userData = { baseY: y, baseX: x, baseZ: z }; // Guardamos as posições originais
             const pts: THREE.Vector3[] = [];
             for (let i = 0; i < 20; i++) {
                 pts.push(new THREE.Vector3((Math.random() - 0.5) * spread, (Math.random() - 0.5) * spread * 0.5, (Math.random() - 0.5) * spread));
@@ -147,7 +150,6 @@ export default function ThreeBackground() {
             techNetworks.push(group);
         }
 
-        // 3. Molduras de Projetos
         function createProjectFrame(x: number, y: number, z: number, rotY: number) {
             const width = 4;
             const height = 2.5;
@@ -156,7 +158,6 @@ export default function ThreeBackground() {
             frame.position.set(x, y, z);
             frame.rotation.y = rotY;
 
-            // Adiciona "cantoneiras" para dar um ar mais técnico
             const cornerGeom = new THREE.BoxGeometry(0.1, 0.1, 0.1);
             const corners = [
                 new THREE.Vector3(-width / 2, height / 2, 0), new THREE.Vector3(width / 2, height / 2, 0),
@@ -171,7 +172,6 @@ export default function ThreeBackground() {
             scene.add(frame);
         }
 
-        // 4. Órbitas de Dados
         function createDataOrbit(x: number, y: number, z: number, radius: number) {
             const pts: THREE.Vector3[] = [];
             for (let i = 0; i <= 64; i++) {
@@ -179,14 +179,13 @@ export default function ThreeBackground() {
                 pts.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius));
             }
             const geom = new THREE.BufferGeometry().setFromPoints(pts);
-            // Usando LineSegments para fazer a linha ficar tracejada/pontilhada
             const orbit = new THREE.LineSegments(geom, inkLineMat(0.15));
             orbit.position.set(x, y, z);
+            orbit.userData = { baseY: y };
             scene.add(orbit);
             dataRings.push(orbit);
         }
 
-        // 5. Símbolos Flutuantes (Tech Runes em vez de apenas círculos)
         function createTechParticles() {
             const geometries = [
                 new THREE.CircleGeometry(0.03, 3), // Triângulos
@@ -205,32 +204,30 @@ export default function ThreeBackground() {
                     speed: 0.15 + Math.random() * 0.3,
                     phase: Math.random() * Math.PI * 2,
                     drift: 0.2 + Math.random() * 0.4,
-                    rotSpeed: (Math.random() - 0.5) * 0.02
+                    rotSpeed: (Math.random() - 0.5) * 0.02,
+                    currentX: p.position.x, currentY: p.position.y // Variáveis para suavizar a repulsão
                 });
                 scene.add(p);
                 particles.push(p as THREE.Mesh);
             }
         }
 
-        // --- CONSTRUÇÃO DO MUNDO ---
-
+        // Construção do Mundo
         const cameraStations = [
-            { pos: new THREE.Vector3(0, 2.5, 12), look: new THREE.Vector3(0, 1, 0) }, // Hero
-            { pos: new THREE.Vector3(-10, 3, 6), look: new THREE.Vector3(-14, 1.5, -3) }, // Sobre/Skills
-            { pos: new THREE.Vector3(10, 2.5, 8), look: new THREE.Vector3(14, 1.5, -2) }, // Projetos
-            { pos: new THREE.Vector3(0, 4, -8), look: new THREE.Vector3(0, 1.5, -19) }, // Contato
+            { pos: new THREE.Vector3(0, 2.5, 12), look: new THREE.Vector3(0, 1, 0) },
+            { pos: new THREE.Vector3(-10, 3, 6), look: new THREE.Vector3(-14, 1.5, -3) },
+            { pos: new THREE.Vector3(10, 2.5, 8), look: new THREE.Vector3(14, 1.5, -2) },
+            { pos: new THREE.Vector3(0, 4, -8), look: new THREE.Vector3(0, 1.5, -19) },
         ];
 
         createCrosshatchGround();
-
-        // Chamando as novas funções
         createTimelinePath(cameraStations);
-        createNetworkGraph(-14, 2, -5, 8); // Atrás da seção 2
-        createNetworkGraph(14, 3, -4, 10); // Atrás da seção 3
+        createNetworkGraph(-14, 2, -5, 8);
+        createNetworkGraph(14, 3, -4, 10);
 
-        createProjectFrame(-14, 1.5, -4, Math.PI / 6); // Frame para estação 2
-        createProjectFrame(14, 1.5, -3, -Math.PI / 6); // Frame para estação 3
-        createProjectFrame(0, 1.5, -20, 0); // Frame final
+        createProjectFrame(-14, 1.5, -4, Math.PI / 6);
+        createProjectFrame(14, 1.5, -3, -Math.PI / 6);
+        createProjectFrame(0, 1.5, -20, 0);
 
         createDataOrbit(0, 0.5, 0, 4);
         createDataOrbit(-14, 0.2, -3, 3);
@@ -238,7 +235,6 @@ export default function ThreeBackground() {
 
         createTechParticles();
 
-        // Plantas originais
         inkGroups.push(createPlantCluster(-5, 0, -3, 1.2, 5));
         inkGroups.push(createPlantCluster(6, 0, -2, 0.8, 4));
         inkGroups.push(createPlantCluster(-15, 0, -5, 1.4, 6));
@@ -246,26 +242,39 @@ export default function ThreeBackground() {
         inkGroups.push(createPlantCluster(15, 0, -4, 1.3, 5));
         inkGroups.push(createPlantCluster(12, 0, 1, 1.1, 6));
 
-        // Eventos
+        // --- LISTENERS ---
         const onScroll = () => {
             const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
             scrollProgress = Math.max(0, Math.min(1, window.scrollY / (maxScroll || 1)));
         };
-        window.addEventListener('scroll', onScroll);
 
         const onResize = () => {
+            windowHalfX = window.innerWidth / 2;
+            windowHalfY = window.innerHeight / 2;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
+
+        const onMouseMove = (event: MouseEvent) => {
+            // Normalizar a posição do rato de -1 a +1
+            targetMouse.x = (event.clientX - windowHalfX) / windowHalfX;
+            targetMouse.y = -(event.clientY - windowHalfY) / windowHalfY;
+        };
+
+        window.addEventListener('scroll', onScroll);
         window.addEventListener('resize', onResize);
+        window.addEventListener('mousemove', onMouseMove);
 
         function smoothstep(t: number) { return t * t * (3 - 2 * t); }
 
-        // Loop de Animação
         const animate = () => {
             animId = requestAnimationFrame(animate);
             time += 0.01;
+
+            // Interpolação suave do movimento do rato
+            mouse.x += (targetMouse.x - mouse.x) * 0.05;
+            mouse.y += (targetMouse.y - mouse.y) * 0.05;
 
             const exact = scrollProgress * (STATIONS - 1);
             const from = Math.floor(exact);
@@ -275,41 +284,76 @@ export default function ThreeBackground() {
             const camPos = new THREE.Vector3().lerpVectors(cameraStations[from].pos, cameraStations[to].pos, lt);
             const camLook = new THREE.Vector3().lerpVectors(cameraStations[from].look, cameraStations[to].look, lt);
 
-            // Suave oscilação da câmera
-            camPos.y += Math.sin(time * 0.5) * 0.08;
-            camPos.x += Math.sin(time * 0.3) * 0.04;
+            // Oscilação + Parallax baseado no rato
+            camPos.y += Math.sin(time * 0.5) * 0.08 + (mouse.y * 0.5);
+            camPos.x += Math.sin(time * 0.3) * 0.04 + (mouse.x * 0.5);
 
             camera.position.lerp(camPos, 0.08);
             const currentDir = new THREE.Vector3();
             camera.getWorldDirection(currentDir);
-            const targetDir = camLook.clone().sub(camera.position).normalize();
+
+            // A câmara também "olha" ligeiramente para a direção do rato
+            const parallaxLook = camLook.clone().add(new THREE.Vector3(mouse.x * 2, mouse.y * 2, 0));
+            const targetDir = parallaxLook.clone().sub(camera.position).normalize();
             currentDir.lerp(targetDir, 0.06);
             camera.lookAt(camera.position.clone().add(currentDir.multiplyScalar(10)));
 
-            // Animação das novas partículas de código
+            // Raycaster para encontrar a posição do rato no espaço 3D (para a repulsão)
+            raycaster.setFromCamera(mouse, camera);
+            const rayDir = raycaster.ray.direction.clone();
+            // Projetamos o raio para uma profundidade média para interagir com as partículas
+            const distanceToIntersection = (0 - camera.position.z) / rayDir.z;
+            const mousePos3D = camera.position.clone().add(rayDir.multiplyScalar(distanceToIntersection));
+
+            // Animação e repulsão das partículas (Tech Runes)
             particles.forEach(p => {
                 const d = p.userData;
-                p.position.x = d.baseX + Math.sin(time * d.speed + d.phase) * d.drift;
-                p.position.y = d.baseY + Math.cos(time * d.speed * 0.7 + d.phase) * 0.3;
+                // Movimento base
+                const targetX = d.baseX + Math.sin(time * d.speed + d.phase) * d.drift;
+                const targetY = d.baseY + Math.cos(time * d.speed * 0.7 + d.phase) * 0.3;
+
+                // Lógica de repulsão
+                const distToMouse = p.position.distanceTo(mousePos3D);
+                let pushX = 0;
+                let pushY = 0;
+
+                if (distToMouse < 4.0) { // Raio de influência do rato
+                    const force = (4.0 - distToMouse) / 4.0;
+                    const pushDir = p.position.clone().sub(mousePos3D).normalize();
+                    pushX = pushDir.x * force * 2.5; // Força do "salto"
+                    pushY = pushDir.y * force * 2.5;
+                }
+
+                // Suaviza a ida e o regresso da partícula
+                d.currentX += ((targetX + pushX) - d.currentX) * 0.1;
+                d.currentY += ((targetY + pushY) - d.currentY) * 0.1;
+
+                p.position.x = d.currentX;
+                p.position.y = d.currentY;
+
                 p.rotation.x += d.rotSpeed;
                 p.rotation.y += d.rotSpeed;
                 p.rotation.z = time * d.speed * 0.2;
             });
 
-            // Gira lentamente as plantas
+            // Plantas reagem subtilmente ao rato
             inkGroups.forEach((g, i) => {
-                g.rotation.z = Math.sin(time * 0.4 + i * 0.7) * 0.015;
-                g.rotation.x = Math.cos(time * 0.3 + i * 0.5) * 0.01;
+                g.rotation.z = Math.sin(time * 0.4 + i * 0.7) * 0.015 - (mouse.x * 0.02);
+                g.rotation.x = Math.cos(time * 0.3 + i * 0.5) * 0.01 + (mouse.y * 0.02);
             });
 
-            // Gira os anéis de dados e redes de conexão
             dataRings.forEach((ring, i) => {
                 ring.rotation.y = time * 0.2 * (i % 2 === 0 ? 1 : -1);
                 ring.rotation.x = Math.sin(time * 0.5 + i) * 0.1;
+                // Anéis levitam ligeiramente
+                ring.position.y = ring.userData.baseY + Math.sin(time * 1.5 + i) * 0.1;
             });
+
+            // Redes distorcem com o movimento do rato
             techNetworks.forEach((net, i) => {
-                net.position.y += Math.sin(time * 0.5 + i) * 0.002;
-                net.rotation.y = Math.sin(time * 0.2 + i) * 0.1;
+                net.position.y = net.userData.baseY + Math.sin(time * 0.5 + i) * 0.1;
+                net.rotation.y = Math.sin(time * 0.2 + i) * 0.1 + (mouse.x * 0.1);
+                net.rotation.x = (mouse.y * -0.1); // Inclina a rede consoante o rato
             });
 
             renderer.render(scene, camera);
@@ -320,6 +364,7 @@ export default function ThreeBackground() {
             cancelAnimationFrame(animId);
             window.removeEventListener('scroll', onScroll);
             window.removeEventListener('resize', onResize);
+            window.removeEventListener('mousemove', onMouseMove);
             if (currentMount && renderer.domElement.parentNode === currentMount) {
                 currentMount.removeChild(renderer.domElement);
             }
